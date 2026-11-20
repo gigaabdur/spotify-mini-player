@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-material="fallback">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: file: https:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spotify Mini Player</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-scale" id="appScale">
+      <div class="app" id="app">
+        <div class="glass-tint" aria-hidden="true"></div>
+
+      <div class="backdrop" id="backdrop" aria-hidden="true">
+        <img class="backdrop-image" id="backdropA" alt="" draggable="false" />
+        <img class="backdrop-image" id="backdropB" alt="" draggable="false" />
+        <div class="backdrop-shade"></div>
+        <div class="backdrop-accent"></div>
+      </div>
+
+      <header class="topbar drag-region">
+        <button
+          class="search-pill no-drag"
+          id="openSearchButton"
+          type="button"
+          aria-label="Search Spotify"
+          title="Search Spotify (Ctrl+F)"
+        >
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+          <span class="search-pill-text" id="searchPillText">Search songs, albums, artists</span>
+          <kbd class="search-pill-key" id="searchPillKey">Ctrl F</kbd>
+        </button>
+
+        <button
+          class="icon-btn no-drag"
+          id="songNameToggleButton"
+          type="button"
+          aria-label="Toggle song name"
+          title="Toggle song name"
+          hidden
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h10M4 17h13" />
+          </svg>
+        </button>
+
+        <div class="window-actions">
+          <button class="icon-btn no-drag" id="playlistsButton" type="button" aria-label="Open your playlists" title="Your playlists">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 6.5h11M4 11h11M4 15.5h7" />
+              <path d="M15.5 13.2v6.4l5.3-3.2-5.3-3.2Z" fill="currentColor" stroke="none" />
+            </svg>
+          </button>
+          <button
+            class="icon-btn no-drag"
+            id="settingsButton"
+            type="button"
+            aria-label="Open settings"
+            aria-controls="settingsSheet"
+            aria-expanded="false"
+            title="Settings"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.14.37.42.68.78.9H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.1Z" />
+            </svg>
+          </button>
+          <button
+            class="icon-btn no-drag"
+            id="hideButton"
+            type="button"
+            aria-label="Hide widget to tray"
+            title="Hide to tray"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="content" id="content">
+        <section class="view loading-view" id="loadingView">
+          <div class="loading-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M9 18V6l10-2v12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="6.5" cy="18" r="2.5" stroke="currentColor" stroke-width="1.7" />
+              <circle cx="16.5" cy="16" r="2.5" stroke="currentColor" stroke-width="1.7" />
+            </svg>
+          </div>
+          <p>Starting the widget…</p>
+        </section>
+
+        <section class="view unavailable-view" id="unavailableView" hidden>
+          <div class="state-card">
+            <div class="unavailable-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 8v5" />
+                <circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none" />
+                <path d="M10.3 3.6 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z" />
+              </svg>
+            </div>
+            <h1>Spotify desktop not found</h1>
+            <p>Install or update Spotify for Windows, then reopen the widget.</p>
+            <div class="state-actions">
+              <button class="primary-btn" id="downloadSpotifyButton" type="button">Download Spotify</button>
+              <button class="secondary-btn" id="retrySetupButton" type="button">Try again</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view player-view" id="playerView" hidden>
+          <div class="drag-surface drag-region" aria-hidden="true"></div>
+
+          <div class="empty-state" id="emptyState" hidden>
+            <div class="state-card empty-card">
+              <div class="empty-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18V6l10-2v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle cx="6.5" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" />
+                  <circle cx="16.5" cy="16" r="2.5" stroke="currentColor" stroke-width="1.6" />
+                </svg>
+                <div class="equalizer" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <h2 id="emptyTitle">Nothing playing</h2>
+              <p id="emptyText">Start a track in Spotify</p>
+              <div class="state-actions empty-actions">
+                <button class="primary-btn" id="emptyOpenSpotify" type="button">Open Spotify</button>
+                <button class="secondary-btn" id="emptySearchButton" type="button">Search</button>
+              </div>
+              <button class="link-button empty-refresh" id="emptyRefresh" type="button">Check again</button>
+            </div>
+          </div>
+
+          <div class="player-bottom" id="playerBottom">
+            <div class="track-meta" id="trackMeta" aria-live="polite">
+              <h1 class="track-title" id="trackTitle">Nothing playing</h1>
+              <p class="track-artist" id="trackArtist">Start a track in Spotify</p>
+            </div>
+
+            <div class="progress-row" id="progressRow">
+              <span class="time" id="elapsedTime">0:00</span>
+              <input
+                class="range progress-range"
+                id="progressSlider"
+                type="range"
+                min="0"
+                max="1"
+                step="1000"
+                value="0"
+                aria-label="Seek in the current track"
+                disabled
+              />
+              <span class="time time-right" id="remainingTime">-0:00</span>
+            </div>
+
+            <div class="transport" id="transport">
+              <div class="transport-side">
+                <button class="control-btn" id="volumeButton" type="button" aria-label="Volume" aria-expanded="false" title="Volume">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M11 5 6.6 8.4H3v7.2h3.6L11 19V5Z" fill="currentColor" stroke="none" />
+                    <path d="M15 9.2a4 4 0 0 1 0 5.6M17.4 6.8a7.4 7.4 0 0 1 0 10.4" />
+                  </svg>
+                </button>
+                <button class="control-btn" id="moreButton" type="button" aria-label="More actions" aria-expanded="false" title="More">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <circle cx="5.5" cy="12" r="1.5" />
+                    <circle cx="12" cy="12" r="1.5" />
+                    <circle cx="18.5" cy="12" r="1.5" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="transport-center">
+                <button class="control-btn" id="previousButton" type="button" aria-label="Previous track" title="Previous" disabled>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18.5 5.2v13.6L8.2 12l10.3-6.8Z" fill="currentColor" />
+                    <rect x="5" y="5" width="2.2" height="14" rx="1.1" fill="currentColor" />
+                  </svg>
+                </button>
+                <button class="play-btn" id="playButton" type="button" aria-label="Play" aria-pressed="false" title="Play" disabled>
+                  <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5.2v13.6L19.2 12 8 5.2Z" fill="currentColor" />
+                  </svg>
+                  <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="7" y="5" width="3.6" height="14" rx="1.6" fill="currentColor" />
+                    <rect x="13.4" y="5" width="3.6" height="14" rx="1.6" fill="currentColor" />
+                  </svg>
+                </button>
+                <button class="control-btn" id="nextButton" type="button" aria-label="Next track" title="Next" disabled>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5.5 5.2v13.6L15.8 12 5.5 5.2Z" fill="currentColor" />
+                    <rect x="16.8" y="5" width="2.2" height="14" rx="1.1" fill="currentColor" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="transport-side transport-side-right">
+                <button class="control-btn" id="infoButton" type="button" aria-label="Track details" aria-expanded="false" title="Track details">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20.5 14.5a2 2 0 0 1-2 2H9l-4.5 3.5v-14a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z" />
+                    <path d="M9.5 9.2v3.2M13 9.2v3.2" stroke-width="2.2" />
+                  </svg>
+                </button>
+                <button class="control-btn queue-button" id="queueButton" type="button" aria-label="Open queue" aria-controls="queueSheet" aria-expanded="false" title="Queue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 7h12M4 12h12M4 17h7" />
+                    <path d="M16.5 16.5h5M19 14v5" />
+                  </svg>
+                  <span class="queue-badge" id="queueCount" hidden>0</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cd-stage" id="cdStage" hidden aria-hidden="true">
+            <svg class="cd-orbit" id="cdOrbit" viewBox="0 0 260 260" aria-hidden="true">
+              <defs>
+                <path
+                  id="cdOrbitPath"
+                  d="M 130 238 A 108 108 0 1 1 130 22 A 108 108 0 1 1 130 238"
+                />
+              </defs>
+              <text class="cd-orbit-text">
+                <textPath id="cdOrbitText" href="#cdOrbitPath" startOffset="50%" text-anchor="middle"></textPath>
+              </text>
+            </svg>
+            <div class="cd-disc" id="cdDisc">
+              <img class="cd-art" id="cdArt" alt="" draggable="false" />
+              <div class="cd-hole" aria-hidden="true"></div>
+              <div class="cd-shine" aria-hidden="true"></div>
+            </div>
+            <div class="cd-controls" id="cdControls">
+              <div class="cd-slot cd-slot-top" id="cdSlotTop"></div>
+              <div class="cd-slot cd-slot-upper-left" id="cdSlotUpperLeft"></div>
+              <div class="cd-slot cd-slot-upper-right" id="cdSlotUpperRight"></div>
+              <div class="cd-slot cd-slot-left" id="cdSlotLeft"></div>
+              <div class="cd-slot cd-slot-right" id="cdSlotRight"></div>
+              <div class="cd-slot cd-slot-lower-left" id="cdSlotLowerLeft"></div>
+              <div class="cd-slot cd-slot-bottom" id="cdSlotBottom"></div>
+              <div class="cd-slot cd-slot-lower-right" id="cdSlotLowerRight"></div>
+            </div>
+          </div>
+
+          <div class="popover volume-popover" id="volumePopover" hidden>
+            <div class="volume-capsule">
+              <input
+                class="range volume-range"
+                id="volumeSlider"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="70"
+                aria-label="Spotify volume"
+                disabled
+              />
+              <span class="volume-value" id="volumeValue" aria-hidden="true">--</span>
+            </div>
+          </div>
+
+          <div class="popover menu-popover" id="moreMenu" hidden>
+            <button class="menu-item" id="menuOpenSpotify" type="button">Open Spotify</button>
+            <button class="menu-item" id="menuRefresh" type="button">Refresh</button>
+            <button class="menu-item" id="menuSettings" type="button">Settings</button>
+            <div class="menu-separator"></div>
+            <button class="menu-item" id="menuHide" type="button">Hide to tray</button>
+            <button class="menu-item danger" id="menuQuit" type="button">Quit</button>
+          </div>
+
+          <div class="popover info-popover" id="infoPopover" hidden>
+            <div class="info-heading">Now playing</div>
+            <div class="info-row"><span>Album</span><span id="infoAlbum">—</span></div>
+            <div class="info-row"><span>Device</span><span id="infoDevice">—</span></div>
+            <div class="info-row"><span>Source</span><span id="infoContext">Spotify</span></div>
+            <div class="info-row"><span>Up next</span><span id="infoQueue">—</span></div>
+          </div>
+        </section>
+      </main>
+
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+        <span class="toast-dot" aria-hidden="true"></span>
+        <span id="toastText"></span>
+      </div>
+
+      <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+
+      <aside
+        class="sheet search-sheet"
+        id="searchSheet"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="searchTitle"
+        tabindex="-1"
+      >
+        <header class="sheet-header">
+          <button class="icon-btn" id="closeSearchButton" type="button" aria-label="Close search" title="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 5-7 7 7 7" />
+            </svg>
+          </button>
+          <h2 id="searchTitle">Search</h2>
+          <span class="sheet-header-spacer" aria-hidden="true"></span>
+        </header>
+
+        <div class="search-field-wrap">
+          <label class="search-field" for="searchInput">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <input
+              id="searchInput"
+              type="text"
+              inputmode="search"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="Search songs, albums, artists, playlists"
+              aria-label="Search Spotify"
+            />
+            <button class="mini-icon-btn search-clear" id="clearSearchButton" type="button" aria-label="Clear search" title="Clear" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+                <path d="m7 7 10 10M17 7 7 17" />
+              </svg>
+            </button>
+          </label>
+        </div>
+
+        <div class="search-filters" id="searchFilters" role="tablist" aria-label="Search type">
+          <button class="filter-chip is-active" type="button" data-type="track" role="tab" aria-selected="true">Songs</button>
+          <button class="filter-chip" type="button" data-type="album" role="tab" aria-selected="false">Albums</button>
+          <button class="filter-chip" type="button" data-type="artist" role="tab" aria-selected="false">Artists</button>
+          <button class="filter-chip" type="button" data-type="playlist" role="tab" aria-selected="false">Playlists</button>
+        </div>
+
+        <div class="sheet-scroll result-list" id="searchResults" role="list"></div>
+        <p class="panel-status" id="searchStatus" hidden></p>
+      </aside>
+
+      <aside
+        class="sheet queue-sheet"
+        id="queueSheet"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="queueTitle"
+        tabindex="-1"
+      >
+        <header class="sheet-header">
+          <button class="icon-btn" id="closeQueueButton" type="button" aria-label="Close queue" title="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 5-7 7 7 7" />
+            </svg>
+          </button>
+          <div class="sheet-title-group">
+            <h2 id="queueTitle">Queue</h2>
+            <p class="sheet-subtitle" id="queueSubtitle">Up next</p>
+          </div>
+          <button class="icon-btn" id="refreshQueueButton" type="button" aria-label="Refresh queue" title="Refresh queue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.3 5.7" />
+              <path d="M20 5v6h-6" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="sheet-scroll queue-body">
+          <div class="queue-now" id="queueNow"></div>
+          <div class="queue-section-head"><span>Next up</span></div>
+          <div class="queue-list" id="queueList" role="list"></div>
+          <div class="queue-empty" id="queueEmpty" hidden>
+            <p id="queueEmptyText">The queue is empty.</p>
+            <button class="link-button" id="queueRetryButton" type="button" hidden>Try again</button>
+          </div>
+        </div>
+      </aside>
+
+      <aside
+        class="sheet playlists-sheet"
+        id="playlistsSheet"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="playlistsTitle"
+        tabindex="-1"
+      >
+        <header class="sheet-header">
+          <button class="icon-btn" id="closePlaylistsButton" type="button" aria-label="Back" title="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 5-7 7 7 7" />
+            </svg>
+          </button>
+          <div class="sheet-title-group">
+            <h2 id="playlistsTitle">Your playlists</h2>
+            <p class="sheet-subtitle" id="playlistsSubtitle">Saved in your library</p>
+          </div>
+          <button class="icon-btn" id="refreshPlaylistsButton" type="button" aria-label="Refresh playlists" title="Refresh playlists">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.3 5.7" />
+              <path d="M20 5v6h-6" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="sheet-scroll playlists-list" id="playlistsList" role="list"></div>
+
+        <div class="playlist-detail" id="playlistDetail" hidden>
+          <div class="playlist-detail-head">
+            <img class="playlist-detail-art" id="playlistDetailImage" alt="" draggable="false" />
+            <div class="playlist-detail-meta">
+              <h3 id="playlistDetailName">Playlist</h3>
+              <p id="playlistDetailMeta">—</p>
+            </div>
+            <button class="primary-btn small" id="playPlaylistButton" type="button">Play all</button>
+          </div>
+          <div class="sheet-scroll playlist-tracks" id="playlistTracks" role="list"></div>
+        </div>
+
+        <p class="panel-status" id="playlistsStatus" hidden></p>
+      </aside>
+
+      <aside
+        class="sheet settings-sheet"
+        id="settingsSheet"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="settingsTitle"
+        tabindex="-1"
+      >
+        <header class="sheet-header">
+          <button class="icon-btn" id="closeSettingsButton" type="button" aria-label="Close settings" title="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 5-7 7 7 7" />
+            </svg>
+          </button>
+          <h2 id="settingsTitle">Settings</h2>
+          <span class="sheet-header-spacer" aria-hidden="true"></span>
+        </header>
+
+        <div class="sheet-scroll sheet-body">
+          <section class="setting-group">
+            <h3>Widget view</h3>
+            <div class="view-switcher" id="viewSwitcher" role="tablist" aria-label="Widget view">
+              <button class="view-switch-btn" type="button" data-view="controls" aria-label="Controls view" title="Controls view">Controls</button>
+              <button class="view-switch-btn is-active" type="button" data-view="default" aria-label="Default view" title="Default view">Default</button>
+              <button class="view-switch-btn" type="button" data-view="cd" aria-label="CD view" title="CD view">CD</button>
+            </div>
+            <p class="setting-hint">Switch between controls, default, and CD layouts. Saved automatically.</p>
+          </section>
+
+          <section class="setting-group">
+            <div class="setting-label">
+              <span>Transparency</span>
+              <span class="setting-value" id="transparencyValue">18%</span>
+            </div>
+            <input
+              class="range opacity-range"
+              id="opacitySlider"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="18"
+              aria-label="Widget transparency"
+            />
+            <p class="setting-hint" id="transparencyHint">Adjusts the strength of the glass tint. Saved automatically.</p>
+          </section>
+
+          <section class="setting-group">
+            <h3>Spotify desktop</h3>
+            <div class="connection-row">
+              <span class="status-dot" id="settingsStatusDot" aria-hidden="true"></span>
+              <span id="settingsStatus">Connecting…</span>
+            </div>
+            <p class="setting-hint" id="settingsStatusHint">
+              The widget reads the current song directly from the Spotify app on this PC.
+            </p>
+            <div class="local-control" id="localControl">
+              <span>Local control</span>
+              <span id="cliVersionText">Checking…</span>
+            </div>
+            <div class="setting-links">
+              <button class="link-button" id="settingsRefreshButton" type="button">Check again</button>
+              <button class="link-button" id="settingsOpenSpotifyButton" type="button">Open Spotify</button>
+            </div>
+          </section>
+
+          <section class="setting-group app-meta">
+            <div><span>Version</span><span id="versionText">1.0.0</span></div>
+            <div><span>Window material</span><span id="materialText">Mica transparent</span></div>
+            <div><span>Now playing</span><span>Local desktop app</span></div>
+          </section>
+
+          <section class="sheet-actions">
+            <button class="secondary-btn" id="hideToTrayButton" type="button">Hide to tray</button>
+            <button class="danger-btn" id="quitButton" type="button">Quit</button>
+          </section>
+
+          <p class="demo-note" id="demoNote" hidden>Demo mode — no Spotify account is used.</p>
+        </div>
+      </aside>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

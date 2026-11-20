@@ -1,0 +1,85 @@
+{
+  "name": "spotify-mini-player",
+  "version": "1.0.0",
+  "description": "A minimalist Spotify mini player widget for Windows 11. No login or API keys.",
+  "author": {
+    "name": "Spotify Mini Player contributors"
+  },
+  "license": "MIT",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "demo": "electron . --demo",
+    "preview": "set SMP_SCREENSHOT_PATH=docs/preview.png&& electron . --demo --screenshot",
+    "preview:empty": "set SMP_SCREENSHOT_PATH=docs/preview-empty.png&& electron . --demo --demo-empty --screenshot",
+    "preview:settings": "set SMP_SCREENSHOT_PATH=docs/preview-settings.png&& electron . --demo --screenshot --open-settings",
+    "preview:queue": "set SMP_SCREENSHOT_PATH=docs/preview-queue.png&& electron . --demo --screenshot --open-queue",
+    "preview:search": "set SMP_SCREENSHOT_PATH=docs/preview-search.png&& electron . --demo --screenshot --open-search --search-query=night",
+    "preview:playlists": "set SMP_SCREENSHOT_PATH=docs/preview-playlists.png&& electron . --demo --screenshot --open-playlists",
+    "preview:playlist": "set SMP_SCREENSHOT_PATH=docs/preview-playlist.png&& electron . --demo --screenshot --open-playlists --playlist-uri=spotify:playlist:demo1",
+    "preview:offline": "set SMP_SCREENSHOT_PATH=docs/preview-offline.png&& electron . --demo-offline --screenshot",
+    "preview:light": "set SMP_SCREENSHOT_PATH=docs/preview-light.png&& electron . --demo --screenshot --light --open-playlists",
+    "test": "node --test test",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win",
+    "dist:installer": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^45.3.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.example.spotifyminiplayer",
+    "productName": "Spotify Mini Player",
+    "copyright": "Copyright \u00a9 2026 Spotify Mini Player contributors",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "package.json",
+      "!**/*.map"
+    ],
+    "asar": true,
+    "publish": null,
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "SpotifyMiniPlayer-${version}-${arch}.${ext}",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Spotify Mini Player",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "uninstallDisplayName": "Spotify Mini Player"
+    },
+    "portable": {
+      "artifactName": "SpotifyMiniPlayer-${version}-portable.${ext}"
+    }
+  }
+}
